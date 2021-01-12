@@ -1,0 +1,20 @@
+#!/bin/bash
+if [[ $1 == *.png ]]; then
+	zopflipng -m "$1" "$1".z.png &
+	sp1=$!
+fi
+cwebp -m 6 -q 100 "$1" -o "$1".webp -quiet &
+sp2=$!
+cwebp -m 6 -q 100 -lossless "$1" -o "$1".ll.webp -quiet &
+sp3=$!
+wait $sp2 $sp3
+if [ $( wc -c <"$1".ll.webp) -lt $( wc -c <"$1".webp) ]; then
+	rm "$1".webp
+	mv "$1".ll.webp "$1".webp
+fi
+if [[ $1 == *.png ]]; then
+	wait
+	if [ $( wc -c <"$1".z.png) -lt $( wc -c <"$1".webp) ]; then
+		rm "$1".webp
+	fi
+fi

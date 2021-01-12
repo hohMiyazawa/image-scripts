@@ -1,0 +1,27 @@
+#!/bin/bash
+# usage:
+# grainweb inputfile quality
+
+# plain avifencoding, s1 to speed it up since it isn't used as output by itself
+avifenc -s 1 -d 10 --max 63 --min 0 -j 4 -c aom -a cq-level=$2 -a end-usage=q "$1" -o tmp_"$1".avif
+
+# noise_model only takes yuv input
+ffmpeg -i "$1" -pix_fmt yuv444p10le tmp_"$1".orig.yuv
+
+read width height < <(identify -format "%w %h" "$1")
+
+# decode avif back to yuv
+avifdec tmp_"$1".avif tmp_"$1".avif.png
+ffmpeg -i tmp_"$1".avif.png -pix_fmt yuv444p10le tmp_"$1".avif.png.yuv
+
+noise_model --input=tmp_"$1".orig.yuv --input-denoised=tmp_"$1".avif.png.yuv --bit-depth=10 --i444 --fps=24/1 --width=$width --height=$height --output-grain-table=tmp_"$1".table
+
+# encode again, with noise model
+avifenc -s 0 -d 10 --max 63 --min 0 -j 4 -c aom -a cq-level=$2 -a film-grain-table=tmp_"$1".table -a end-usage=q "$1" -o "$1".avif
+
+# clean up
+rm tmp_"$1".avif
+rm tmp_"$1".avif.png
+rm tmp_"$1".avif.png.yuv
+rm tmp_"$1".orig.yuv
+rm tmp_"$1".table

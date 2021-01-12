@@ -1,0 +1,2 @@
+#!/bin/bash
+cwebp -m 6 -q 100 -lossless "$1" -o "$1".ll.webp

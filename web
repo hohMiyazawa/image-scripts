@@ -1,0 +1,3 @@
+#!/bin/bash
+avifenc -s 1 --min 0 --max 63 -d 10 -j 4 -c aom -a end-usage=q -a cq-level=8 "$1" -o "$1.avif" &
+cwebp -m 6 -q 99 -sharp_yuv "$1" -o "$1".webp

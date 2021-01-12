@@ -1,0 +1,2 @@
+#!/bin/bash
+rm -fr data && rm mimetype && rm mergedimage.png && rm stack.xml && rm -fr Thumbnails
