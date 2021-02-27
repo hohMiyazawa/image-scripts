@@ -1,0 +1,5 @@
+#!/bin/bash
+# usage:
+# scriptname inputfile quality
+
+avifenc -s 0 -d 10 --max 63 --min 0 -j 4 -c aom -a cq-level=$2 -a end-usage=q "$1" -o "$1".avif
