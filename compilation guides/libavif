@@ -1,6 +1,6 @@
 # basic build with aom as encoder and dav1d as decoder
 
-1. clone https://github.com/AOMediaCodec/libavif
+1. git clone https://github.com/AOMediaCodec/libavif
 
 2. go to "ext"
 

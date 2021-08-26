@@ -1,20 +1,38 @@
 #!/bin/bash
 # usage:
-# grainweb inputfile quality
+# ./grainweb inputfile quality
+# quality 10 - 30 is a sensible range. Lower number = better quality, larger file size
+
+# example:
+# ./grainweb mpv-shot0001.png 20
+
+# requirements:
+# 1. ffmpeg
+# 2. avifenc from libavif with aom support
+# see /compilation guides/libavif
+# 3. noise_model, which is in the "examples" directory when you build aom
+
+# change the "-s 1" and "-s 0" numbers if the encoding is too slow for your tastes
+
 
 # plain avifencoding, s1 to speed it up since it isn't used as output by itself
 avifenc -s 1 -d 10 --max 63 --min 0 -j 4 -c aom -a cq-level=$2 -a end-usage=q "$1" -o tmp_"$1".avif
 
-# noise_model only takes yuv input
-ffmpeg -i "$1" -pix_fmt yuv444p10le tmp_"$1".orig.yuv
-
 read width height < <(identify -format "%w %h" "$1")
 
-# decode avif back to yuv
-avifdec tmp_"$1".avif tmp_"$1".avif.png
-ffmpeg -i tmp_"$1".avif.png -pix_fmt yuv444p10le tmp_"$1".avif.png.yuv
+# noise_model only takes even dimensions.
+# no need to crop the image itself, but the intermediate yuv files fed to the modeller must be
+width_even=$(echo "$width 2/2*p" | dc)
+height_even=$(echo "$height 2/2*p" | dc)
 
-noise_model --input=tmp_"$1".orig.yuv --input-denoised=tmp_"$1".avif.png.yuv --bit-depth=10 --i444 --fps=24/1 --width=$width --height=$height --output-grain-table=tmp_"$1".table
+# noise_model only takes yuv input
+ffmpeg -i "$1" -pix_fmt yuv444p10le -vf "crop=$width_even:$height_even:0:0" tmp_"$1".orig.yuv
+
+# decode avif back to yuv, so we have the "denoised" version to find good grain parameters
+avifdec tmp_"$1".avif tmp_"$1".avif.png
+ffmpeg -i tmp_"$1".avif.png -pix_fmt yuv444p10le -vf "crop=$width_even:$height_even:0:0" tmp_"$1".avif.png.yuv
+
+noise_model --input=tmp_"$1".orig.yuv --input-denoised=tmp_"$1".avif.png.yuv --bit-depth=10 --i444 --fps=24/1 --width=$width_even --height=$height_even --output-grain-table=tmp_"$1".table
 
 # encode again, with noise model
 avifenc -s 0 -d 10 --max 63 --min 0 -j 4 -c aom -a cq-level=$2 -a film-grain-table=tmp_"$1".table -a end-usage=q "$1" -o "$1".avif
