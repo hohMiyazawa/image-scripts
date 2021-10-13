@@ -10,7 +10,7 @@ LC_NUMERIC=en_US.UTF-8
 if [ "$2" = "--strip" ]; then
   echo "metadata not preserved due to '--strip'"
 else
-  echo "metadata preserved by default. All '--strip' to remove"
+  echo "metadata preserved by default. Add '--strip' to remove"
 fi
 echo "crunching... ctrl-c to stop at any time"
 
@@ -102,7 +102,7 @@ do
   cjxl "$1" $TMPFILE --quiet -q 100 -s 9 -E 3 -I 1 -g $GVALUE $USEPATCHES -P $i $2
   if((`stat -c%s "$TMPFILE"`<`stat -c%s "$1.ll.jxl"`));then
     mv $TMPFILE "$1".ll.jxl
-    USEP="-P 0"
+    USEP="-P $i"
     echo "$(du -b "$1".ll.jxl) -s 9 -E 3 -I 1 -g $GVALUE $USEPATCHES $USEP"
   fi
 done
