@@ -169,3 +169,9 @@ for i in $(seq $(echo "$IVALUE - 0.005" | bc) 0.0001 $(echo "$IVALUE + 0.005" | 
   fi
 done
 
+cjxl "$1" $TMPFILE --quiet -q 100 -s 9 -E 3 -I 0 -P 0 -g $GVALUE $USEPATCHES $2
+if((`stat -c%s "$TMPFILE"`<`stat -c%s "$1.ll.jxl"`));then
+  mv $TMPFILE "$1".ll.jxl
+  echo "$(du -b "$1".ll.jxl) -s 9 -E 3 -I 0 -P 0 -g $GVALUE $USEPATCHES"
+fi
+
